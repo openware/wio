@@ -8,19 +8,41 @@ import (
 )
 
 var (
-  addr  = flag.String("h", "localhost:8080", "TCP address to listen to")
+  addr  = flag.String("h", "0.0.0.0:8080", "TCP address to listen to")
   root  = flag.String("d", "/usr/share/httpd", "Directory to serve static files from")
   strip = flag.Int("s", 0, "Number of mount point to skip")
-  // compress  = flag.Bool("compress", false, "Enables transparent response compression if set to true")
+  compress = flag.Bool("c", false, "Enables transparent response compression if set to true")
+  fsHandler fasthttp.RequestHandler
 )
+
+func notFoundHandler(ctx *fasthttp.RequestCtx) {
+  ctx.Logger().Printf("File %s not found, defaulting to index.html", ctx.Path())
+  ctx.Request.SetRequestURI("/index.html")
+  fsHandler(ctx)
+}
+
+func requestHandler(ctx *fasthttp.RequestCtx) {
+  fsHandler(ctx)
+}
+
+func createFsHandler(stripSlashes int) fasthttp.RequestHandler {
+  fs := &fasthttp.FS{
+		Root:               *root,
+		Compress:           *compress,
+		IndexNames:         []string{"index.html"},
+    PathNotFound:       notFoundHandler,
+    GenerateIndexPages: false,
+    AcceptByteRange:    true,
+	}
+  if stripSlashes > 0 {
+		fs.PathRewrite = fasthttp.NewPathSlashesStripper(stripSlashes)
+	}
+  return fs.NewRequestHandler()
+}
 
 func main() {
   flag.Parse()
-
-  fsHandler := fasthttp.FSHandler(*root, *strip)
-  requestHandler := func(ctx *fasthttp.RequestCtx) {
-    fsHandler(ctx)
-  }
+  fsHandler = createFsHandler(*strip)
 
   // Start HTTP server.
   if len(*addr) > 0 {
