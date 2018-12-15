@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"log"
+	"os"
 
 	"github.com/valyala/fasthttp"
 )
@@ -42,6 +43,12 @@ func createFsHandler(stripSlashes int) fasthttp.RequestHandler {
 
 func main() {
 	flag.Parse()
+
+	if _, err := os.Stat(*root + "/index.html"); os.IsNotExist(err) {
+		log.Printf("File index.html not found")
+		os.Exit(1)
+	}
+
 	fsHandler = createFsHandler(*strip)
 
 	// Start HTTP server.
