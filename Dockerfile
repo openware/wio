@@ -20,4 +20,6 @@ FROM alpine
 RUN apk add ca-certificates
 COPY --from=builder /go/bin/wio /bin/wio
 
+COPY httpd /usr/share/httpd
+
 ENTRYPOINT ["/bin/wio"]

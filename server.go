@@ -17,7 +17,7 @@ var (
 
 func notFoundHandler(ctx *fasthttp.RequestCtx) {
 	ctx.Logger().Printf("File %s not found, defaulting to index.html", ctx.Path())
-	ctx.Request.SetRequestURI("/index.html")
+	ctx.Request.SetRequestURI("/404.html")
 	fsHandler(ctx)
 }
 
@@ -26,7 +26,7 @@ func requestHandler(ctx *fasthttp.RequestCtx) {
 }
 
 func createFsHandler(stripSlashes int) fasthttp.RequestHandler {
-	fs := &fasthttp.FS{
+	fs := &fasthttp.FS {
 		Root:               *root,
 		Compress:           *compress,
 		IndexNames:         []string{"index.html"},
