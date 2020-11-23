@@ -1,5 +1,5 @@
 kind: pipeline
-name: wio unit
+name: default
 
 steps:
 - name: test
@@ -8,3 +8,15 @@ steps:
   - go mod download
   - go build
   - go test
+
+- name: "Build Docker image"
+  image: plugins/docker
+  settings:
+    username:
+      from_secret: quay_username
+    password:
+      from_secret: quay_password
+    repo:
+      from_secret: quay_repo
+    tags: ${DRONE_COMMIT_SHA:0:7}
+    registry: quay.io

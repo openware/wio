@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"log"
+	"net/http"
+	"strings"
 
 	"github.com/valyala/fasthttp"
 )
@@ -16,6 +18,10 @@ var (
 )
 
 func notFoundHandler(ctx *fasthttp.RequestCtx) {
+	if strings.HasSuffix(string(ctx.Request.RequestURI()), ".map") {
+		ctx.Response.SetStatusCode(http.StatusNotFound)
+		return
+	}
 	ctx.Logger().Printf("File %s not found, defaulting to index.html", ctx.Path())
 	ctx.Request.SetRequestURI("/index.html")
 	fsHandler(ctx)
