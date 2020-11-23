@@ -12,7 +12,7 @@ import (
 var (
 	addr     = flag.String("h", "0.0.0.0:8080", "TCP address to listen to")
 	root     = flag.String("d", "/usr/share/httpd", "Directory to serve static files from")
-	prefix   = flag.String("p", "/", "URL prefix used to access the server")
+	strip    = flag.Int("s", 0, "Number of subdir to remove from the query")
 	compress = flag.Bool("c", false, "Enables transparent response compression if set to true")
 )
 
@@ -39,6 +39,7 @@ func createFsHandler() fasthttp.RequestHandler {
 		Compress:           *compress,
 		IndexNames:         []string{"index.html"},
 		PathNotFound:       notFoundHandler,
+		PathRewrite:        fasthttp.NewPathSlashesStripper(*strip),
 		GenerateIndexPages: false,
 		AcceptByteRange:    true,
 	}
@@ -49,22 +50,11 @@ func main() {
 	flag.Parse()
 	fsHandler = createFsHandler()
 
-	handler := func(ctx *fasthttp.RequestCtx) {
-		uri := string(ctx.RequestURI())
-		if strings.HasPrefix(uri, *prefix) {
-			uri = uri[len(*prefix):]
-			ctx.Request.SetRequestURI(uri)
-			fsHandler(ctx)
-			return
-		}
-		reponseNotFound(ctx)
-	}
-
 	// Start HTTP server.
 	if len(*addr) > 0 {
 		log.Printf("Starting HTTP server on %q", *addr)
 		log.Printf("Serving files from directory %q", *root)
-		if err := fasthttp.ListenAndServe(*addr, handler); err != nil {
+		if err := fasthttp.ListenAndServe(*addr, fsHandler); err != nil {
 			log.Fatalf("error in ListenAndServe: %s", err)
 		}
 	}
