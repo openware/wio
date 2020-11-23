@@ -1,10 +1,7 @@
-FROM golang:1.11-alpine AS builder
+FROM golang:1.15-alpine AS builder
 
-# Install some dependencies needed to build the project
-RUN apk add bash ca-certificates git gcc g++ libc-dev
+RUN apk add bash ca-certificates
 WORKDIR /go/src/github.com/openware/wio
-
-ENV GO111MODULE=on
 
 COPY go.mod .
 COPY go.sum .
@@ -13,10 +10,10 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go install -a -tags netgo -ldflags '-w -extldflags "-static"'
+RUN go install .
 
-FROM alpine
-
+FROM quay.io/openware/tower:2.6.15
+USER root
 RUN apk add ca-certificates
 COPY --from=builder /go/bin/wio /bin/wio
 
