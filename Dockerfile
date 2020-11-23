@@ -12,9 +12,7 @@ COPY . .
 
 RUN go install .
 
-FROM quay.io/openware/tower:2.6.15
 USER root
 RUN apk add ca-certificates
-COPY --from=builder /go/bin/wio /bin/wio
 
 ENTRYPOINT ["/bin/wio"]

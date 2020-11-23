@@ -24,7 +24,7 @@ func notFoundHandler(ctx *fasthttp.RequestCtx) {
 		return
 	}
 	ctx.Logger().Printf("File %s not found, defaulting to index.html", ctx.Path())
-	ctx.Response.SetBodyRaw(indexBody)
+	ctx.Response.SetBody(indexBody)
 	ctx.Response.SetStatusCode(http.StatusOK)
 }
 
