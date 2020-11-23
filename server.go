@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
@@ -16,7 +15,7 @@ var (
 	compress = flag.Bool("c", false, "Enables transparent response compression if set to true")
 )
 
-var indexBody []byte
+var fsHandler fasthttp.RequestHandler
 
 func notFoundHandler(ctx *fasthttp.RequestCtx) {
 	if strings.HasSuffix(string(ctx.Request.RequestURI()), ".map") {
@@ -24,8 +23,8 @@ func notFoundHandler(ctx *fasthttp.RequestCtx) {
 		return
 	}
 	ctx.Logger().Printf("File %s not found, defaulting to index.html", ctx.Path())
-	ctx.Response.SetBody(indexBody)
-	ctx.Response.SetStatusCode(http.StatusOK)
+	ctx.Request.SetRequestURI("/index.html")
+	fsHandler(ctx)
 }
 
 func createFsHandler() fasthttp.RequestHandler {
@@ -43,14 +42,7 @@ func createFsHandler() fasthttp.RequestHandler {
 func main() {
 	flag.Parse()
 
-	var err error
-	indexBody, err = ioutil.ReadFile(*root + "/index.html")
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-
-	fsHandler := createFsHandler()
+	fsHandler = createFsHandler()
 
 	// Start HTTP server.
 	if len(*addr) > 0 {
