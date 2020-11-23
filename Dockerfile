@@ -12,7 +12,9 @@ COPY . .
 
 RUN go install .
 
-USER root
+FROM alpine
+
 RUN apk add ca-certificates
+COPY --from=builder /go/bin/wio /bin/wio
 
 ENTRYPOINT ["/bin/wio"]
