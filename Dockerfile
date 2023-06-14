@@ -1,4 +1,4 @@
-FROM golang:1.15-alpine AS builder
+FROM golang:1.20-alpine AS builder
 
 RUN apk add bash ca-certificates
 WORKDIR /go/src/github.com/openware/wio
