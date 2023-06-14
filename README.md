@@ -6,7 +6,7 @@
 
 WIO is a micro web server for static assets, best fitted for serving react projects
 
-## Installing
+## Installation
 
 ```
 go get github.com/openware/wio

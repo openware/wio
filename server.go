@@ -12,14 +12,20 @@ import (
 var (
 	addr     = flag.String("h", "0.0.0.0:8080", "TCP address to listen to")
 	root     = flag.String("d", "/usr/share/httpd", "Directory to serve static files from")
+	strip    = flag.Int("s", 0, "Number of subdir to remove from the query")
 	compress = flag.Bool("c", false, "Enables transparent response compression if set to true")
 )
 
 var fsHandler fasthttp.RequestHandler
 
+func reponseNotFound(ctx *fasthttp.RequestCtx) {
+	ctx.Response.SetStatusCode(http.StatusNotFound)
+	ctx.Response.SetBody([]byte("Not Found\n"))
+}
+
 func notFoundHandler(ctx *fasthttp.RequestCtx) {
 	if strings.HasSuffix(string(ctx.Request.RequestURI()), ".map") {
-		ctx.Response.SetStatusCode(http.StatusNotFound)
+		reponseNotFound(ctx)
 		return
 	}
 	ctx.Logger().Printf("File %s not found, defaulting to index.html", ctx.Path())
@@ -33,6 +39,7 @@ func createFsHandler() fasthttp.RequestHandler {
 		Compress:           *compress,
 		IndexNames:         []string{"index.html"},
 		PathNotFound:       notFoundHandler,
+		PathRewrite:        fasthttp.NewPathSlashesStripper(*strip),
 		GenerateIndexPages: false,
 		AcceptByteRange:    true,
 	}
@@ -41,7 +48,6 @@ func createFsHandler() fasthttp.RequestHandler {
 
 func main() {
 	flag.Parse()
-
 	fsHandler = createFsHandler()
 
 	// Start HTTP server.
